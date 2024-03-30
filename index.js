@@ -1,6 +1,13 @@
-import express from "express";
-import bodyParser from "body-parser";
-import env from "dotenv";
+import {
+    express,
+    bodyParser,
+    env
+} from './imports.js';
+import routeHome from './app/routes/routeHome.js';
+import routeLoginLocal from './app/routes/routeLoginLocal.js';
+import routeRegisterLocal from './app/routes/routeRegisterLocal.js';
+import routeSecrets from './app/routes/routeSecrets.js';
+import routeSubmit from './app/routes/routeSubmit.js';
 
 const app = express();
 const port = 3000;
@@ -10,25 +17,11 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.static("public"));
 
 
-app.get("/", (req, res) => {
-    res.render("home.ejs");
-});
-
-app.get("/login", (req, res) => {
-    res.render("login.ejs");
-});
-
-app.get("/register", (req, res) => {
-    res.render("register.ejs");
-});
-
-app.get("/secrets", (req, res) => {
-    res.render("secrets.ejs", {secret: "vtnc"});
-});
-
-app.get("/submit", (req, res) => {
-    res.render("submit.ejs");
-});
+app.get("/", routeHome);
+app.use('/login', routeLoginLocal);
+app.use('/register', routeRegisterLocal);
+app.get("/secrets", routeSecrets);
+app.get("/submit", routeSubmit);
 
 app.listen(port, () => {
   console.log(`Server started on port ${port}`);
