@@ -1,4 +1,10 @@
-import { db } from "../../index.js";
+import { Strategy } from "passport-local";
+import { 
+  db,
+  passport,
+  bcrypt,
+  saltRounds
+} from "../../index.js";
 
 export const checkPassword = (objUser, password) => {
   if (objUser.password === password) {
@@ -40,25 +46,34 @@ export const checkEmail = async (email) => {
 
 export const registerUser = async (email, password) => {
   return new Promise((resolve, reject) => {
-    const myQuery = "INSERT INTO users (email, password) VALUES ($1, $2)";
+    const myQuery = "INSERT INTO users (email, password) VALUES ($1, $2) RETURNING *";
     const myValues = [email, password];
     db.query(myQuery, myValues, (err, res) => {
       if (err) {
         console.error("Error registering user:", err);
         reject(err);
       } else {
-        resolve();
+        resolve(res.rows[0]);
       }
     });
   });
+}
+
+export const isAuthenticated = async (req, res, next) => {
+  // Se o usuário estiver autenticado, prossiga
+  if (req.isAuthenticated()) {
+      return next();
+  }
+  // Caso contrário, redirecione para a página de login
+  res.send("you need to login");
 }
 
 export const routeLoginLocal = async (req, res) => {
   const username = req.body.username;
   const password = req.body.password;
 
-  console.log("username:", username);
-  console.log("password:", password);
+  // console.log("username:", username);
+  // console.log("password:", password);
 
   const objUser = await getUser(username);
   try {
@@ -74,23 +89,85 @@ export const routeLoginLocal = async (req, res) => {
   }
   };
 
+passport.use( 
+  "local",
+  new Strategy( async function verify(username, password, cb) {
+    console.log("username:", username);
+    console.log("password:", password);
+
+    try {
+      const objUser = await getUser(username);
+
+      if(Object.keys(objUser).length > 0) {
+        const storedHashedPassword = objUser.password;
+        bcrypt.compare(password, storedHashedPassword, (err, valid) =>{
+          if(err) {
+            console.error("Error comparing passwords:", err);
+            return cb(err);
+          } else {
+            if(valid) {
+              //Passed password check
+              return cb(null, objUser);
+            } else {
+              //Did not pass password check
+              return cb(null, false);
+            }
+          }
+        })
+      } else {
+        //User not found
+        return cb("User not found", false);
+      }
+    } catch (err) {
+      console.error(err);
+    }
+
+  })
+);
+
 export const routeRegisterLocal = async (req, res) => {
   const username = req.body.username;
   const password = req.body.password;
 
-  console.log("username:", username);
-  console.log("password:", password);
+  // console.log("username:", username);
+  // console.log("password:", password);
 
   try {
     const isEmail = await checkEmail(username);
     if (isEmail) {
       res.send("This e-mail already exist.");
     } else {
-      await registerUser(username, password);
-    res.redirect("/");
+      bcrypt.hash(password, parseInt(saltRounds), async (err, hash) => {
+        if (err) {
+          console.error("Error hashing password:", err);
+        } else {
+          const user = await registerUser(username, hash);
+          req.login(user, (err)=>{
+            console.log("User registered:", user);
+            res.redirect("/secrets");
+          });
+        }
+      });
     }
   } catch (error) {
     console.error(error);
     res.send("Register error");
   }
 };
+
+export const routeSubmit = async (req, res) => {
+  const secret = req.body.secret;
+
+  console.log("secret:", secret); 
+};
+
+passport.serializeUser((user, cb) => {
+  cb(null, user);
+});
+passport.deserializeUser((user, cb) => {
+  cb(null, user);
+});
+
+export {
+  passport
+}

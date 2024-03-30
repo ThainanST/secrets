@@ -1,9 +1,13 @@
 import express from 'express';
-import * as taskController from '../controllers/ctrlAuthLocal.js';
+import * as ctrlAuthLocal from '../controllers/ctrlAuthLocal.js';
 const router = express.Router();
 
 router.get("/", (req, res) => {
-    res.render("secrets.ejs", {secret: "vtnc"});
+    if (req.user.secret === null) {
+        res.render("secrets.ejs", {secret: "You have no secret yet."});
+    } else {
+        res.render("secrets.ejs", {secret: req.user.secret});
+    }
 });
 
 export default router;
