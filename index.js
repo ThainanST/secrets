@@ -17,11 +17,11 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.static("public"));
 
 
-app.get("/", routeHome);
+app.use("/", routeHome);
 app.use('/login', routeLoginLocal);
 app.use('/register', routeRegisterLocal);
-app.get("/secrets", routeSecrets);
-app.get("/submit", routeSubmit);
+app.use("/secrets", routeSecrets);
+app.use("/submit", routeSubmit);
 
 app.listen(port, () => {
   console.log(`Server started on port ${port}`);
