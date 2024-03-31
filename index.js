@@ -10,8 +10,10 @@ import env from "dotenv";
 
 import routeHome from './app/routes/routeHome.js';
 import routeLoginLocal from './app/routes/routeLoginLocal.js';
+import routeLoginGoogle from './app/routes/routeLoginGoogle.js';
 import routeRegisterLocal from './app/routes/routeRegisterLocal.js';
 import routeSecrets from './app/routes/routeSecrets.js';
+import routeSecretsGoogle from './app/routes/routeSecretsGoogle.js';
 import routeSubmit from './app/routes/routeSubmit.js';
 import routeLogout from './app/routes/routeLogout.js';
 import * as ctrlAuthLocal from './app/controllers/ctrlAuthLocal.js';
@@ -50,8 +52,10 @@ db.connect();
 
 app.use("/", routeHome);
 app.use('/login', routeLoginLocal);
+app.use('/auth/google', routeLoginGoogle);
 app.use('/register', routeRegisterLocal);
 app.use("/secrets", ctrlAuthLocal.isAuthenticated, routeSecrets);
+app.use('/auth/google/secrets', routeSecretsGoogle);
 app.use("/submit", ctrlAuthLocal.isAuthenticated, routeSubmit);
 app.use("/logout", ctrlAuthLocal.isAuthenticated, routeLogout);
 
@@ -65,4 +69,6 @@ export {
   passport,
   bcrypt,
   saltRounds,
+  GoogleStrategy,
+  env,
 };
