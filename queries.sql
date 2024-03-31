@@ -12,3 +12,8 @@ VALUES('joao@example.com', '123456', 'Segredo do João');
 
 INSERT INTO users(email, password, secret)
 VALUES('pedro@example.com', '123456', 'Segredo do Pedro');
+
+-- Atualizando segredo para um usuário específico
+UPDATE users
+SET secret = 'Segredo do Tales'
+WHERE id = 12;

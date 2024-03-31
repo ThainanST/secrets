@@ -20,20 +20,23 @@ const app = express();
 const port = 3000;
 env.config();
 
-app.use(
-  session({
-    secret: process.env.SESSION_SECRET,
-    resave: false,
-    saveUninitialized: false,
-  })
-  );
+app.use( session({ 
+  secret: process.env.SESSION_SECRET, 
+  resave: false,           
+  saveUninitialized: true, 
+  cookie: {
+    maxAge: 1000 * 60 * 60 * 24 // 1 dia // 10° passo
+  }
+}))
   
-  app.use(bodyParser.urlencoded({ extended: true }));
-  app.use(express.static("public"));
-  
-  app.use(passport.initialize());
-  app.use(passport.session());
-  const saltRounds = process.env.SALT_ROUNDS;
+app.use(bodyParser.urlencoded({ extended: true }));
+app.use(express.static("public"));
+
+
+
+app.use(passport.initialize());
+app.use(passport.session());
+const saltRounds = process.env.SALT_ROUNDS;
 
 const db = new pg.Client({
   user: process.env.PG_USER,
