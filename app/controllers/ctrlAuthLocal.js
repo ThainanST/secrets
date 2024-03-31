@@ -3,8 +3,12 @@ import {
   db,
   passport,
   bcrypt,
-  saltRounds
+  saltRounds,
+  GoogleStrategy,
 } from "../../index.js";
+
+import { config } from 'dotenv';
+config();
 
 export const checkPassword = (objUser, password) => {
   if (objUser.password === password) {
@@ -138,6 +142,38 @@ passport.use( "local",
     }
 
   })
+);
+
+const googleStrategyOptions = {
+  clientID: process.env.GOOGLE_CLIENT_ID,
+  clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+  callbackURL: "http://localhost:3000/auth/google/secrets",
+  userProfileURL: "https://www.googleapis.com/oauth2/v3/userinfo",
+};
+
+const googleStrategyCallback = async (accessToken, refreshToken, profile, cb) => {
+  const userEmail = profile.email;  
+  try {
+    const objUser = await getUser(userEmail);
+    if (objUser !== undefined) { // user existe
+      return cb(null, objUser);
+    } else {
+      const mocPassword = "google";
+      const objUserRegistered = await registerUser(userEmail, mocPassword);
+      return cb(null, objUserRegistered);
+    }
+  } catch (err) {
+    console.error(err);
+    return cb(err);
+  }
+};
+
+passport.use(
+  "google",
+  new GoogleStrategy(
+    googleStrategyOptions,
+    googleStrategyCallback
+  )
 );
 
 export const routeRegisterLocal = async (req, res) => {
