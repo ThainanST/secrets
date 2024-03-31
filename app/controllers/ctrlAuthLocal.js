@@ -59,6 +59,22 @@ export const registerUser = async (email, password) => {
   });
 }
 
+export const saveSecret = async (id, secret) => {
+  return new Promise((resolve, reject) => {
+    const myQuery = "UPDATE users SET secret = $1 WHERE id = $2 RETURNING *";
+    const myValues = [secret, id];
+    db.query(myQuery, myValues, (err, res) => {
+      if (err) {
+        console.error("Error updating secret:", err);
+        reject(err);
+      } else {
+        resolve(res.rows[0]);
+      }
+    });
+  });
+
+};
+
 export const isAuthenticated = async (req, res, next) => {
   // Se o usuário estiver autenticado, prossiga
   if (req.isAuthenticated()) {
@@ -89,11 +105,10 @@ export const routeLoginLocal = async (req, res) => {
   }
   };
 
-passport.use( 
-  "local",
+passport.use( "local",
   new Strategy( async function verify(username, password, cb) {
-    console.log("username:", username);
-    console.log("password:", password);
+    // console.log("username:", username);
+    // console.log("password:", password);
 
     try {
       const objUser = await getUser(username);
@@ -143,7 +158,7 @@ export const routeRegisterLocal = async (req, res) => {
         } else {
           const user = await registerUser(username, hash);
           req.login(user, (err)=>{
-            console.log("User registered:", user);
+            // console.log("User registered:", user);
             res.redirect("/secrets");
           });
         }
@@ -155,10 +170,36 @@ export const routeRegisterLocal = async (req, res) => {
   }
 };
 
-export const routeSubmit = async (req, res) => {
-  const secret = req.body.secret;
+export const routeSecrets = async (req, res) => {
+  try {
+    const email = req.user.email;
+    const user = await getUser(email);
 
-  console.log("secret:", secret); 
+    if (user.secret === null) {
+      res.render("secrets.ejs", {secret: "You have no secret yet."});
+    } else {
+      res.render("secrets.ejs", {secret: user.secret});
+    }
+  } catch (error) {
+    res.send("Error getting secret");
+    console.error(error);
+  }
+};
+
+export const routeSubmit = async (req, res) => {
+  // TODO: submit secret
+  const secret = req.body.secret;
+  const id     = req.user.id;
+  // console.log("secret:", secret);
+  // console.log("id:", id);
+
+  try {
+    const user = await saveSecret(id, secret);
+    res.send("Secret saved");
+  } catch (error) {
+    console.error(error);
+    res.send("Error saving secret");
+  }
 };
 
 passport.serializeUser((user, cb) => {
