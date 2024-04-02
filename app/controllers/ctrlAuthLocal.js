@@ -80,11 +80,9 @@ export const saveSecret = async (id, secret) => {
 };
 
 export const isAuthenticated = async (req, res, next) => {
-  // Se o usuário estiver autenticado, prossiga
   if (req.isAuthenticated()) {
       return next();
   }
-  // Caso contrário, redirecione para a página de login
   res.send("you need to login");
 }
 
@@ -92,12 +90,8 @@ export const routeLoginLocal = async (req, res) => {
   const username = req.body.username;
   const password = req.body.password;
 
-  // console.log("username:", username);
-  // console.log("password:", password);
-
   const objUser = await getUser(username);
   try {
-    //
     if (checkPassword(objUser, password)) {
       res.render("secrets.ejs", {secret: "teste"});
     } else {
@@ -111,9 +105,6 @@ export const routeLoginLocal = async (req, res) => {
 
 passport.use( "local",
   new Strategy( async function verify(username, password, cb) {
-    // console.log("username:", username);
-    // console.log("password:", password);
-
     try {
       const objUser = await getUser(username);
 
