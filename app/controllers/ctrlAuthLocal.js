@@ -146,7 +146,7 @@ const googleStrategyCallback = async (accessToken, refreshToken, profile, cb) =>
   const userEmail = profile.email;  
   try {
     const objUser = await getUser(userEmail);
-    if (objUser !== undefined) { // user existe
+    if (objUser !== undefined) { // user exists
       return cb(null, objUser);
     } else {
       const mocPassword = "google";
@@ -214,11 +214,8 @@ export const routeSecrets = async (req, res) => {
 };
 
 export const routeSubmit = async (req, res) => {
-  // TODO: submit secret
   const secret = req.body.secret;
   const id     = req.user.id;
-  // console.log("secret:", secret);
-  // console.log("id:", id);
 
   try {
     const user = await saveSecret(id, secret);
